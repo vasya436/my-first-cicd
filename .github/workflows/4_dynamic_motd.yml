@@ -1,0 +1,41 @@
+---
+- name: Dynamic MOTD with IP and hostname
+  hosts: my_servers
+  become: yes
+
+  tasks:
+    # 1. Собираем факты о системе
+    - name: Gather system facts
+      setup:
+
+    # 2. Получаем hostname
+    - name: Get hostname
+      set_fact:
+        host_name: "{{ ansible_hostname }}"
+
+    # 3. Получаем IP (основной сетевой интерфейс)
+    - name: Get primary IP
+      set_fact:
+        primary_ip: "{{ ansible_default_ipv4.address | default('N/A') }}"
+
+    # 4. Формируем текст MOTD
+    - name: Build MOTD message
+      set_fact:
+        motd_content: |
+          ****************************************
+          ДОБРО ПОЖАЛОВАТЬ, АДМИНИСТРАТОР!
+          ****************************************
+
+          Сервер: {{ host_name }}
+          IP: {{ primary_ip }}
+
+          Желаем продуктивного дня!
+          Ansible автоматизировал это сообщение.
+          ****************************************
+
+    # 5. Записываем в /etc/motd
+    - name: Write MOTD to file
+      copy:
+        content: "{{ motd_content }}"
+        dest: /etc/motd
+        mode: '0644'
