@@ -1,0 +1,31 @@
+---
+- name: Install and enable tuned service
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install tuned
+      apt:
+        name: tuned
+        state: present
+
+    - name: Start and enable tuned
+      service:
+        name: tuned
+        state: started
+        enabled: yes
+
+    - name: Verify tuned is active
+      command: systemctl is-active tuned
+      register: tuned_status
+      changed_when: false
+
+    - name: Show tuned status
+      debug:
+        msg: "tuned status: {{ tuned_status.stdout }}"
+      when: tuned_status is succeeded
