@@ -1,0 +1,15 @@
+---
+- name: Change MOTD with variable
+  hosts: my_servers
+  become: yes
+
+  # Переменная с текстом приветствия
+  vars:
+    welcome_msg: "Добро пожаловать на сервер! Настроен через Ansible."
+
+  tasks:
+    - name: Update MOTD file
+      copy:
+        content: "{{ welcome_msg }}\n"
+        dest: /etc/motd
+        mode: '0644'
