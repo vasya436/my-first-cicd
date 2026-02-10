@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Server Info</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; }
+    .info { margin-bottom: 15px; }
+  </style>
+</head>
+<body>
+  <h1>Server Information</h1>
+  <div class="info"><strong>Hostname:</strong> {{ ansible_hostname }}</div>
+  <div class="info"><strong>IP Address:</strong> {{ ansible_default_ipv4.address }}</div>
+  <div class="info"><strong>CPU:</strong> {{ ansible_processor[0] }} ({{ ansible_processor_count }} cores)</div>
+  <div class="info"><strong>RAM:</strong> {{ (ansible_memtotal_mb / 1024) | round(1) }} GB</div>
+
+  <div class="info"><strong>First HDD:</strong>
+    {% set disk_keys = ansible_devices.keys() | select('match', '^(sd|vd|hd|nvme)\\w+$') | list %}
+    {% if disk_keys %}
+      {% set first_disk = disk_keys[0] %}
+      {% set size_str = ansible_devices[first_disk].size %}
+      {% if 'GB' in size_str %}
+        {{ (size_str | replace(' GB', '') | float) }} GB
+      {% elif 'MB' in size_str %}
+        {{ (size_str | replace(' MB', '') | float / 1024) | round(1) }} GB
+      {% else %}
+        {{ size_str }}
+  {% endif %}
+    {% else %}
+      Not found
+    {% endif %}
+  </div>
+</body>
+</html>
