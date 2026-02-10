@@ -1,0 +1,40 @@
+---
+- name: Install Apache web server (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name: apache2
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+- name: Install Apache web server (RHEL/CentOS)
+  ansible.builtin.yum:
+    name: httpd
+    state: present
+  when: ansible_os_family == "RedHat"
+
+- name: Ensure Apache is enabled and running
+  ansible.builtin.service:
+    name: "{{ 'apache2' if ansible_os_family == 'Debian' else 'httpd' }}"
+    enabled: yes
+    state: started
+
+- name: Open port 80 in UFW (Ubuntu/Debian)
+  ansible.builtin.ufw:
+    rule: allow
+    port: 80
+    proto: tcp
+  when: ansible_os_family == "Debian"
+
+- name: Open port 80 in firewalld (RHEL/CentOS)
+  ansible.builtin.firewalld:
+    port: 80/tcp
+    permanent: yes
+    state: enabled
+  when: ansible_os_family == "RedHat"
+
+- name: Deploy index.html from template
+  ansible.builtin.template:
+    src: index.html.j2
+    dest: /var/www/html/index.html
+    mode: '0644'
+  notify: restart apache
